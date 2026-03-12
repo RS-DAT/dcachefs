@@ -54,7 +54,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'dCacheFS'
-copyright = u'2020, Netherlands eScience Center'
+copyright = u'2026, Netherlands eScience Center'
 author = u"Francesco Nattino"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -71,7 +71,7 @@ release = dcachefs.__version__
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
