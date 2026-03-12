@@ -1,10 +1,32 @@
 # Change Log
 
 All notable changes to this project will be documented in this file.
-This project adheres to [Semantic Versioning](http://semver.org/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 ## [Unreleased]
+
+### Added
+
+* added ruff for linting and formatting, with pre-commit and gh action
+
+### Changed
+
+* pyproject.toml adopted for project metadata
+* action Build -> Test, with updated steps
+* CITATION.cff moved to version 1.2
+* metadata files moved to markdown
+* `dev` and `docs` dependencies moved to project metadata
+* linter/formatted applied to code and notebooks
+
+### Fixed
+
+* documentation building on readthedocs is fixed
+
+### Removed
+
+* dropped .zenodo.json file, not needed since Zenodo recognized CITATION.cff
+* removed environment file - conda is not required
 
 ## [0.1.7]
 
