@@ -1,21 +1,31 @@
-# YAML 1.2
----
-cff-version: "1.1.0"
-title: "dCacheFS: a `fsspec`-compatible file-system interface for dCache"
-abstract: "dCacheFS provides a file-system interface for the dCache storage system. It builds on the Filesystem Spec library and it can be used as an independent library or via the more general `fsspec` functions."
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: >-
+  dCacheFS: a `fsspec`-compatible file-system interface for
+  dCache
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
 authors:
-  -
-    affiliation: "Netherlands eScience Center"
+  - given-names: Francesco
     family-names: Nattino
-    given-names: Francesco
-    orcid: "https://orcid.org/0000-0003-3286-0139"
-date-released: 2023-05-04
-doi: "10.5281/zenodo.4436720"
-version: "0.1.7"
-repository-code: "https://github.com/NLeSC-GO-common-infrastructure/dcachefs"
+    email: f.nattino@esciencecenter.nl
+    affiliation: Netherlands eScience Center
+    orcid: 'https://orcid.org/0000-0003-3286-0139'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.4436720
+repository-code: 'https://github.com/RS-DAT/dcachefs'
+url: 'https://dcachefs.readthedocs.io/'
+abstract: >-
+  dCacheFS provides a file-system interface for the dCache
+  storage system. It builds on the Filesystem Spec library
+  and it can be used as an independent library or via the
+  more general `fsspec` functions.
 keywords:
-  - "dCache"
-  - "Filesystem Spec"
-message: "If you use this software, please cite it using these metadata."
-license: "Apache-2.0"
-...
+  - dCache
+  - fsspec
+license: Apache-2.0

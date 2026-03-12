@@ -1,28 +1,25 @@
-import aiohttp
 import asyncio
 import logging
 import weakref
-import yarl
-
 from datetime import datetime
-from fsspec.asyn import sync_wrapper, sync, AsyncFileSystem
-from fsspec.implementations.http import get_client, HTTPFile, HTTPStreamFile
-from fsspec.utils import DEFAULT_BLOCK_SIZE
 from urllib.parse import quote
+
+import aiohttp
+import yarl
+from fsspec import FSTimeoutError
+from fsspec.asyn import AsyncFileSystem, sync, sync_wrapper
+from fsspec.implementations.http import HTTPFile, HTTPStreamFile, get_client
+from fsspec.utils import DEFAULT_BLOCK_SIZE
 from urlpath import URL
 
 logger = logging.getLogger(__name__)
 
 
-DCACHE_FILE_TYPES = {
-    'REGULAR': 'file',
-    'DIR': 'directory'
-}
+DCACHE_FILE_TYPES = {"REGULAR": "file", "DIR": "directory"}
 
 
 def _get_details(path, data):
-    """
-    Extract details from the metadata returned by the dCache API
+    """Extract details from the metadata returned by the dCache API.
 
     :param path: (str) file or directory path
     :param data: (dict) metadata as provided by the API
@@ -30,31 +27,30 @@ def _get_details(path, data):
     """
     path = URL(path)
 
-    name = data.get('fileName')  # fileName might be missing
-    name = path/name if name is not None else path
+    name = data.get("fileName")  # fileName might be missing
+    name = path / name if name is not None else path
     name = name.path
-    element_type = data.get('fileType')
-    element_type = DCACHE_FILE_TYPES.get(element_type, 'other')
-    created = data.get('creationTime')  # in ms
-    created = datetime.fromtimestamp(created / 1000.)
-    modified = data.get('mtime')  # in ms
-    modified = datetime.fromtimestamp(modified / 1000.)
+    element_type = data.get("fileType")
+    element_type = DCACHE_FILE_TYPES.get(element_type, "other")
+    created = data.get("creationTime")  # in ms
+    created = datetime.fromtimestamp(created / 1000.0)
+    modified = data.get("mtime")  # in ms
+    modified = datetime.fromtimestamp(modified / 1000.0)
     return dict(
         name=name,
-        size=data.get('size'),
+        size=data.get("size"),
         type=element_type,
         created=created,
-        modified=modified
+        modified=modified,
     )
 
 
 def _encode(path):
-    return quote(path, safe='')
+    return quote(path, safe="")
 
 
-class dCacheFileSystem(AsyncFileSystem):
-    """
-    File system interface for a dCache storage instance.
+class dCacheFileSystem(AsyncFileSystem):  # noqa: N801
+    """File system interface for a dCache storage instance.
 
     Inspired by the fsspec HTTPFileSystem implementation, specific methods
     interacts with the dCache system either via its API or via the WebDAV
@@ -98,14 +94,14 @@ class dCacheFileSystem(AsyncFileSystem):
         loop=None,
         batch_size=None,
         encoded=True,
-        **storage_options
+        **storage_options,
     ):
         super().__init__(
             self,
             asynchronous=asynchronous,
             loop=loop,
             batch_size=batch_size,
-            **storage_options
+            **storage_options,
         )
         self.api_url = api_url
         self.webdav_url = webdav_url
@@ -113,16 +109,14 @@ class dCacheFileSystem(AsyncFileSystem):
         self.request_kwargs = {} if request_kwargs is None else request_kwargs
         self.encoded = encoded
         if (username is None) ^ (password is None):
-            raise ValueError('Username or password not provided')
+            raise ValueError("Username or password not provided")
         if (username is not None) and (password is not None):
-            self.client_kwargs.update(
-                auth=aiohttp.BasicAuth(username, password)
-            )
+            self.client_kwargs.update(auth=aiohttp.BasicAuth(username, password))
         if token is not None:
             if password is not None:
-                raise ValueError('Provide either token or username/password')
-            headers = self.client_kwargs.get('headers', {})
-            headers.update(Authorization=f'Bearer {token}')
+                raise ValueError("Provide either token or username/password")
+            headers = self.client_kwargs.get("headers", {})
+            headers.update(Authorization=f"Bearer {token}")
             self.client_kwargs.update(headers=headers)
         block_size = DEFAULT_BLOCK_SIZE if block_size is None else block_size
         self.block_size = block_size
@@ -132,6 +126,7 @@ class dCacheFileSystem(AsyncFileSystem):
 
     @staticmethod
     def close_session(loop, session):
+        """Close the client session."""
         if loop is not None and loop.is_running():
             try:
                 sync(loop, session.close, timeout=0.1)
@@ -144,27 +139,22 @@ class dCacheFileSystem(AsyncFileSystem):
             connector._close()
 
     def encode_url(self, url):
+        """Build URL, with encoded part."""
         return yarl.URL(url, encoded=self.encoded)
 
     async def set_session(self):
+        """Set the client session, compatibly with both async/sync execution."""
         if self._session is None:
-            self._session = await get_client(
-                loop=self.loop,
-                **self.client_kwargs
-            )
+            self._session = await get_client(loop=self.loop, **self.client_kwargs)
             if not self.asynchronous:
-                weakref.finalize(
-                    self,
-                    self.close_session,
-                    self.loop,
-                    self._session
-                )
+                weakref.finalize(self, self.close_session, self.loop, self._session)
         return self._session
 
     @property
     def api_url(self):
+        """dCache API URL."""  # noqa: D403
         if self._api_url is None:
-            raise ValueError('dCache API URL not set!')
+            raise ValueError("dCache API URL not set!")
         return self._api_url
 
     @api_url.setter
@@ -173,8 +163,9 @@ class dCacheFileSystem(AsyncFileSystem):
 
     @property
     def webdav_url(self):
+        """WebDAV door URL."""
         if self._webdav_url is None:
-            raise ValueError('WebDAV door not set!')
+            raise ValueError("WebDAV door not set!")
         return self._webdav_url
 
     @webdav_url.setter
@@ -183,8 +174,7 @@ class dCacheFileSystem(AsyncFileSystem):
 
     @classmethod
     def _strip_protocol(cls, path):
-        """
-        Turn path from fully-qualified to file-system-specific.
+        """Turn path from fully-qualified to file-system-specific.
 
         :param path: (str or list) target path(s)
         :return: (str or list) target path(s) stripped from protocol and WebDAV
@@ -197,20 +187,18 @@ class dCacheFileSystem(AsyncFileSystem):
 
     @classmethod
     def _get_kwargs_from_urls(cls, path):
-        """
-        Extract keyword arguments encoded in the urlpath.
+        """Extract keyword arguments encoded in the urlpath.
 
         :param path: (str) target path
         :return: (dict) arguments include the WebDAV door URL, if part of the
             input target path
         """
         webdav_url = cls._get_webdav_url(path)
-        return {'webdav_url': webdav_url} if webdav_url is not None else {}
+        return {"webdav_url": webdav_url} if webdav_url is not None else {}
 
     @classmethod
     def _get_webdav_url(cls, path):
-        """
-        Extract WebDAV access point from the urlpath(s).
+        """Extract WebDAV access point from the urlpath(s).
 
         :param path: (str or list) target path(s). If list, extract the URL
             from the first element
@@ -222,8 +210,7 @@ class dCacheFileSystem(AsyncFileSystem):
         return url.drive if "http" in url.scheme else None
 
     async def _get_info(self, path, children=False, limit=None, **kwargs):
-        """
-        Request file or directory metadata to the API.
+        """Request file or directory metadata to the API.
 
         :param path: (str) target path
         :param children: (bool, optional) if True, return metadata of the
@@ -233,10 +220,10 @@ class dCacheFileSystem(AsyncFileSystem):
         :param kwargs: (dict, optional) arguments passed on to requests
         :return: (dict) path metadata
         """
-        url = URL(self.api_url) / 'namespace' / _encode(path)
+        url = URL(self.api_url) / "namespace" / _encode(path)
         url = url.with_query(children=children)
         if limit is not None and children:
-            url = url.add_query(limit=f'{limit}')
+            url = url.add_query(limit=f"{limit}")
         url = url.as_uri()
         request_kwargs = self.request_kwargs.copy()
         request_kwargs.update(kwargs)
@@ -248,8 +235,7 @@ class dCacheFileSystem(AsyncFileSystem):
             return await r.json()
 
     async def _ls(self, path, detail=True, limit=None, **kwargs):
-        """
-        List path content.
+        """List path content.
 
         :param path: (str) target path (file or directory)
         :param detail: (bool, optional) if True, return a list of dictionaries
@@ -262,15 +248,10 @@ class dCacheFileSystem(AsyncFileSystem):
         """
         path = self._strip_protocol(path)
 
-        info = await self._get_info(
-            path,
-            children=True,
-            limit=limit,
-            **kwargs
-        )
+        info = await self._get_info(path, children=True, limit=limit, **kwargs)
         details = _get_details(path, info)
-        if details['type'] == 'directory':
-            elements = info.get('children') or []
+        if details["type"] == "directory":
+            elements = info.get("children") or []
             details = [_get_details(path, el) for el in elements]
         else:
             details = [details]
@@ -278,13 +259,12 @@ class dCacheFileSystem(AsyncFileSystem):
         if detail:
             return details
         else:
-            return [d.get('name') for d in details]
+            return [d.get("name") for d in details]
 
     ls = sync_wrapper(_ls)
 
     async def _cat_file(self, path, start=None, end=None, **kwargs):
-        """
-        Get the content of a file.
+        """Get the content of a file.
 
         :param path: (str) target file path
         :param start: (int, optional) First byte for file read using range
@@ -303,7 +283,7 @@ class dCacheFileSystem(AsyncFileSystem):
             raise ValueError("Give start and end or neither")
         if start is not None:
             headers = request_kwargs.pop("headers", {}).copy()
-            headers["Range"] = "bytes=%i-%i" % (start, end - 1)
+            headers["Range"] = f"bytes={start:d}-{end - 1:d}"
             request_kwargs["headers"] = headers
         session = await self.set_session()
         async with session.get(url, **request_kwargs) as r:
@@ -313,9 +293,8 @@ class dCacheFileSystem(AsyncFileSystem):
             out = await r.read()
         return out
 
-    async def _get_file(self, rpath, lpath, chunk_size=5*2**20, **kwargs):
-        """
-        Copy file to local.
+    async def _get_file(self, rpath, lpath, chunk_size=5 * 2**20, **kwargs):
+        """Copy file to local.
 
         :param rpath: (str) remote target file path
         :param lpath: (str) local file path where to copy the target file
@@ -342,8 +321,7 @@ class dCacheFileSystem(AsyncFileSystem):
                     fd.write(chunk)
 
     async def _put_file(self, lpath, rpath, **kwargs):
-        """
-        Copy file from local.
+        """Copy file from local.
 
         :param rpath: (str) local target file path
         :param lpath: (str) remote file path where to copy the target file
@@ -365,8 +343,7 @@ class dCacheFileSystem(AsyncFileSystem):
         raise NotImplementedError
 
     async def _pipe_file(self, path, value, **kwargs):
-        """
-        Write data into a remote file.
+        """Write data into a remote file.
 
         :param path: (str) target file path
         :param value: dict, list of tuples, bytes or file-like object to write
@@ -384,8 +361,7 @@ class dCacheFileSystem(AsyncFileSystem):
             r.raise_for_status()
 
     async def _mv(self, path1, path2, **kwargs):
-        """
-        Rename path1 to path2.
+        """Rename path1 to path2.
 
         :param path1: (str) source path
         :param path2: (str) destination path
@@ -394,9 +370,9 @@ class dCacheFileSystem(AsyncFileSystem):
         path1 = self._strip_protocol(path1)
         path2 = self._strip_protocol(path2)
 
-        url = URL(self.api_url) / 'namespace' / _encode(path1)
+        url = URL(self.api_url) / "namespace" / _encode(path1)
         url = url.as_uri()
-        data = dict(action='mv', destination=path2)
+        data = dict(action="mv", destination=path2)
         request_kwargs = self.request_kwargs.copy()
         request_kwargs.update(kwargs)
         session = await self.set_session()
@@ -409,13 +385,12 @@ class dCacheFileSystem(AsyncFileSystem):
     mv = sync_wrapper(_mv)
 
     async def _rm_file(self, path, **kwargs):
-        """
-        Remove file or directory (must be empty).
+        """Remove file or directory (must be empty).
 
         :param path: (str) target path
         :param kwargs: (dict, optional) arguments passed on to requests
         """
-        url = URL(self.api_url) / 'namespace' / _encode(path)
+        url = URL(self.api_url) / "namespace" / _encode(path)
         url = url.as_uri()
         request_kwargs = self.request_kwargs.copy()
         request_kwargs.update(kwargs)
@@ -426,8 +401,7 @@ class dCacheFileSystem(AsyncFileSystem):
             r.raise_for_status()
 
     async def _rm(self, path, recursive=False, **kwargs):
-        """
-        Remove file or directory tree.
+        """Remove file or directory tree.
 
         :param path: (str) target path
         :param recursive: (bool, optional) if True, and the target path is a
@@ -442,8 +416,7 @@ class dCacheFileSystem(AsyncFileSystem):
     rm = sync_wrapper(_rm)
 
     async def _info(self, path, **kwargs):
-        """
-        Give details about a file or a directory.
+        """Give details about a file or a directory.
 
         :param path: (str) target path
         :param kwargs: (dict, optional) arguments passed on to requests
@@ -456,33 +429,23 @@ class dCacheFileSystem(AsyncFileSystem):
     info = sync_wrapper(_info)
 
     def created(self, path):
-        """
-        Date and time in which the path was created.
+        """Date and time in which the path was created.
 
         :param path: (str) target path
         :return: (datetime.datetime) time of creation
         """
-        return self.info(path).get('created')
+        return self.info(path).get("created")
 
     def modified(self, path):
-        """
-        Date and time in which the path was last modified.
+        """Date and time in which the path was last modified.
 
         :param path: (str) target path
         :return: (datetime.datetime) time of last modification
         """
-        return self.info(path).get('modified')
+        return self.info(path).get("modified")
 
-    def _open(
-        self,
-        path,
-        mode="rb",
-        block_size=None,
-        request_kwargs=None,
-        **kwargs
-    ):
-        """
-        Create a file-like object.
+    def _open(self, path, mode="rb", block_size=None, request_kwargs=None, **kwargs):
+        """Create a file-like object.
 
         :param path: (str) target file path
         :param mode: (string, optional) choose between "r", "rb", "w", and "wb"
@@ -511,7 +474,7 @@ class dCacheFileSystem(AsyncFileSystem):
                 asynchronous=self.asynchronous,
                 session=session,
                 loop=self.loop,
-                **kwargs
+                **kwargs,
             )
         else:
             return dCacheStreamFile(
@@ -522,17 +485,11 @@ class dCacheFileSystem(AsyncFileSystem):
                 asynchronous=self.asynchronous,
                 session=session,
                 loop=self.loop,
-                **kwargs
+                **kwargs,
             )
 
-    def open(
-        self,
-        path,
-        mode="rb",
-        **kwargs
-    ):
-        """
-        Return a file-like object from the filesystem.
+    def open(self, path, mode="rb", **kwargs):
+        """Return a file-like object from the filesystem.
 
         :param path: (str) target file path
         :param mode: (str, optional) choose between "r", "rb", "w", and "wb"
@@ -541,16 +498,11 @@ class dCacheFileSystem(AsyncFileSystem):
         :return: (dCacheFile or dCacheStreamFile) file-like object
         """
         self.webdav_url = self._get_webdav_url(path) or self.webdav_url
-        return super().open(
-            path=path,
-            mode=mode,
-            **kwargs
-        )
+        return super().open(path=path, mode=mode, **kwargs)
 
 
-class dCacheFile(HTTPFile):
-    """
-    A file-like object pointing to a target file on dCache.
+class dCacheFile(HTTPFile):  # noqa: N801
+    """A file-like object pointing to a target file on dCache.
 
     Supports reading, with read-ahead of a pre-determined block-size, and
     writing, with the file content being first cached and then uploaded to
@@ -580,7 +532,7 @@ class dCacheFile(HTTPFile):
         asynchronous=False,
         session=None,
         loop=None,
-        **kwargs
+        **kwargs,
     ):
         path = fs._strip_protocol(url)
         url = URL(fs.webdav_url) / path
@@ -592,18 +544,14 @@ class dCacheFile(HTTPFile):
         if mode not in {"rb", "wb"}:
             raise ValueError
         super(HTTPFile, self).__init__(
-            fs=fs,
-            path=path,
-            mode=mode,
-            block_size=block_size,
-            **kwargs
+            fs=fs, path=path, mode=mode, block_size=block_size, **kwargs
         )
 
     def flush(self, force=False):
-        """
-        Write buffered data to remote file. Since byte-range writing is not
-        supported, the file content is only written when `force` is True (i.e.
-        when the file-like object is closed).
+        """Write buffered data to remote file.
+
+        Since byte-range writing is not supported, the file content is only written when
+        `force` is True (i.e. when the file-like object is closed).
 
         :param force: (bool, optional) Force writing of the remote file.
             Disallows further writing to this file.
@@ -617,26 +565,21 @@ class dCacheFile(HTTPFile):
             self.forced = True
 
     async def _write_chunked(self):
-        """ Write buffered data to remote file. """
+        """Write buffered data to remote file."""
         self.buffer.seek(0)
-        r = await self.session.put(
-            self.url,
-            data=self.buffer,
-            **self.request_kwargs
-        )
+        r = await self.session.put(self.url, data=self.buffer, **self.request_kwargs)
         async with r:
             r.raise_for_status()
 
     write_chunked = sync_wrapper(_write_chunked)
 
     def close(self):
-        """ Close file. Finalize writes, discard cache. """
+        """Close file. Finalize writes, discard cache."""
         super(HTTPFile, self).close()
 
 
-class dCacheStreamFile(HTTPStreamFile):
-    """
-    A streaming file-like object pointing to a target file on dCache.
+class dCacheStreamFile(HTTPStreamFile):  # noqa: N801
+    """A streaming file-like object pointing to a target file on dCache.
 
     Supports reading and writing by opening request streams to the remote file.
 
@@ -660,7 +603,7 @@ class dCacheStreamFile(HTTPStreamFile):
         asynchronous=False,
         session=None,
         loop=None,
-        **kwargs
+        **kwargs,
     ):
         path = fs._strip_protocol(url)
         url = URL(fs.webdav_url) / path
@@ -671,12 +614,8 @@ class dCacheStreamFile(HTTPStreamFile):
         self.session = session
         self.loop = loop
         super(HTTPStreamFile, self).__init__(
-            fs=fs,
-            path=path,
-            mode=mode,
-            block_size=0,
-            cache_type="none",
-            **kwargs)
+            fs=fs, path=path, mode=mode, block_size=0, cache_type="none", **kwargs
+        )
         if self.mode == "rb":
 
             async def get():
@@ -691,9 +630,9 @@ class dCacheStreamFile(HTTPStreamFile):
             raise ValueError
 
     def write(self, data):
-        """
-        Write data to remote file. Can be called only once, consecutive calls
-        will overwrite the file.
+        """Write data to remote file.
+
+        Can be called only once, consecutive calls will overwrite the file.
 
         :param data: dict, list of tuples, bytes or file-like object to write
         """
@@ -701,19 +640,14 @@ class dCacheStreamFile(HTTPStreamFile):
             raise ValueError("File not in write mode")
 
         async def put():
-            r = await self.session.put(
-                self.url,
-                data=data,
-                **self.request_kwargs
-            )
+            r = await self.session.put(self.url, data=data, **self.request_kwargs)
             return r
 
         self.r = sync(self.loop, put)
         self.r.raise_for_status()
 
     def read(self, num=-1):
-        """
-        Read bytes from file.
+        """Read bytes from file.
 
         :param num: (int, optional) Read up this many bytes. If negative, read
             all content to end of file.

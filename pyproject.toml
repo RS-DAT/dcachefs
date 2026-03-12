@@ -1,0 +1,91 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dcachefs"
+version = "0.1.7"
+authors = [
+    {name = "Francesco Nattino", email = "f.nattino@esciencecenter.nl"},
+]
+requires-python = ">=3.10"
+dependencies = [
+    "aiohttp",
+    "fsspec",
+    "urlpath",
+    "yarl",
+]
+description = "A `fsspec`-compatible file-system interface for dCache"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+classifiers=[
+    'Development Status :: 3 - Alpha',
+    'Intended Audience :: Developers',
+    'Natural Language :: English',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
+]
+
+[project.urls]
+repository = "https://github.com/RS-DAT/dcachefs"
+documentation = "https://dcachefs.readthedocs.io"
+changelog = "https://github.com/RS-DAT/dcachefs/blob/master/CHANGELOG.md"
+doi = "https://doi.org/10.5281/zenodo.3842780"
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "pre-commit",
+    "pytest>=6",
+    "pytest-cov",
+    "pycodestyle",
+]
+docs = [
+    "sphinx",
+    "docutils",
+    "sphinx_rtd_theme",
+    "recommonmark",
+    "myst_parser",
+    "nbsphinx",
+]
+
+[tool.setuptools]
+packages = ["dcachefs"]
+
+[tool.ruff]
+lint.select = [
+    "E",  # pycodestyle
+    "F",  # pyflakes
+    "B",  # flake8-bugbear
+    "D",  # pydocstyle
+    "I",  # isort
+    "N",  # PEP8-naming
+    "UP",  # pyupgrade (upgrade syntax to current syntax)
+    "PLE",  # Pylint error https://github.com/charliermarsh/ruff#error-ple
+]
+line-length = 88
+lint.ignore = [
+    "D100", "D101", "D104", "D105", "D106", "D107", "D203", "D213", "D413",
+]
+lint.extend-per-file-ignores = { "tests/**" = ["D"]}
+include = [
+    "pyproject.toml",
+    "dcachefs/**/*.py",
+    "tests/**/*.py",
+    "notebooks/**/*.ipynb",
+]
+exclude = ["docs/conf.py"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--cov --cov-report term"
+testpaths = [
+    "tests",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["dcachefs"]
