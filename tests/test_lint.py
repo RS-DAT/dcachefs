@@ -1,4 +1,5 @@
-""" Lint tests """
+"""Lint tests"""
+
 import os
 import textwrap
 
@@ -8,12 +9,12 @@ import pycodestyle  # formerly known as pep8
 def test_pep8_conformance():
     """Test that we conform to PEP-8."""
     check_paths = [
-        'dcachefs',
-        'tests',
+        "dcachefs",
+        "tests",
     ]
     exclude_paths = []
 
-    print("PEP8 check of directories: {}\n".format(', '.join(check_paths)))
+    print("PEP8 check of directories: {}\n".format(", ".join(check_paths)))
 
     # Get paths wrt package root
     package_root = os.path.dirname(os.path.dirname(__file__))
@@ -27,7 +28,8 @@ def test_pep8_conformance():
     success = style.check_files(check_paths).total_errors == 0
 
     if not success:
-        print(textwrap.dedent("""
+        print(
+            textwrap.dedent("""
             Your Python code does not conform to the official Python style
             guide (PEP8), see https://www.python.org/dev/peps/pep-0008
 
@@ -38,6 +40,7 @@ def test_pep8_conformance():
             Run `yapf -d yourfile.py` to preview what would be changed.
             Run `pip install --upgrade yapf` to install the latest version
             of yapf.
-        """))
+        """)
+        )
 
     assert success, "Your code does not conform to PEP8"
