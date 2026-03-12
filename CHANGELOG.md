@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * dropped .zenodo.json file, not needed since Zenodo recognized CITATION.cff
 * removed environment file - conda is not required
+* removed unused .editorconfig
 
 ## [0.1.7]
 
