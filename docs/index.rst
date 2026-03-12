@@ -10,5 +10,5 @@ Welcome to dCacheFS's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   readme
+   README.md
    notebooks/user_manual
