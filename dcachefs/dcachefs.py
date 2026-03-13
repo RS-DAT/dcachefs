@@ -139,7 +139,7 @@ class dCacheFileSystem(AsyncFileSystem):  # noqa: N801
             connector._close()
 
     def encode_url(self, url):
-        """Build URL, with encoded part."""
+        """Build URL, optionally encoded."""
         return yarl.URL(url, encoded=self.encoded)
 
     async def set_session(self):
