@@ -1,4 +1,4 @@
-__version__ = "0.1.7"
+__version__ = "0.2.0"
 __author__ = "Francesco Nattino"
 __email__ = "f.nattino@esciencecenter.nl"
 __all__ = ["dCacheFileSystem"]

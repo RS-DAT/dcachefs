@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dcachefs"
-version = "0.1.7"
+version = "0.2.0"
 authors = [
     {name = "Francesco Nattino", email = "f.nattino@esciencecenter.nl"},
 ]
