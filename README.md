@@ -1,12 +1,12 @@
 # dCacheFS
 
-[![GitHub](https://img.shields.io/badge/github-repo-000.svg?logo=github&labelColor=gray&color=blue)](https://github.com/NLeSC-GO-common-infrastructure/dcachefs)
-[![License](https://img.shields.io/github/license/NLeSC-GO-common-infrastructure/dcachefs)](https://github.com/NLeSC-GO-common-infrastructure/dcachefs)
+[![GitHub](https://img.shields.io/badge/github-repo-000.svg?logo=github&labelColor=gray&color=blue)](https://github.com/RS-DAT/dcachefs)
+[![License](https://img.shields.io/github/license/RS-DAT/dcachefs)](https://github.com/RS-DAT/dcachefs)
 [![PyPI](https://img.shields.io/pypi/v/dcachefs.svg?colorB=blue)](https://pypi.python.org/project/dcachefs/)
 [![Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.4436720.svg)](https://doi.org/10.5281/zenodo.4436720)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4585/badge)](https://bestpractices.coreinfrastructure.org/projects/4585)
-[![CI Build](https://github.com/NLeSC-GO-common-infrastructure/dcachefs/workflows/Build/badge.svg)](https://github.com/NLeSC-GO-common-infrastructure/dcachefs/actions?query=workflow%3A%22Build%22)
-[![CI Publish](https://github.com/NLeSC-GO-common-infrastructure/dcachefs/workflows/Publish/badge.svg)](https://github.com/NLeSC-GO-common-infrastructure/dcachefs/actions?query=workflow%3A%22Publish%22)
+[![CI Test](https://github.com/RS-DAT/dcachefs/workflows/Test/badge.svg)](https://github.com/RS-DAT/dcachefs/actions?query=workflow%3A%22Test%22)
+[![CI Publish](https://github.com/RS-DAT/dcachefs/workflows/Publish/badge.svg)](https://github.com/RS-DAT/dcachefs/actions?query=workflow%3A%22Publish%22)
 [![Documentation](https://readthedocs.org/projects/dcachefs/badge/?version=latest)](https://dcachefs.readthedocs.io)
 
 dCacheFS provides a Python file-system interface for a [dCache storage system](https://www.dcache.org), such as the [instance provided at SURF](http://doc.grid.surfsara.nl/en/stable/Pages/Service/system_specifications/dcache_specs.html).
