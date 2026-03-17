@@ -12,3 +12,4 @@ Welcome to dCacheFS's documentation!
 
    readme
    notebooks/user_manual
+   api
