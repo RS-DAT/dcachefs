@@ -45,10 +45,9 @@ dev = [
 ]
 docs = [
     "sphinx",
-    "docutils",
-    "sphinx_rtd_theme",
+    "docutils==0.16",
+    "sphinx_rtd_theme==0.5.2",
     "recommonmark",
-    "myst_parser",
     "nbsphinx",
 ]
 

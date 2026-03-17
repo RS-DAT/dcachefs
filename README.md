@@ -1,3 +1,5 @@
+# dCacheFS
+
 [![GitHub](https://img.shields.io/badge/github-repo-000.svg?logo=github&labelColor=gray&color=blue)](https://github.com/NLeSC-GO-common-infrastructure/dcachefs)
 [![License](https://img.shields.io/github/license/NLeSC-GO-common-infrastructure/dcachefs)](https://github.com/NLeSC-GO-common-infrastructure/dcachefs)
 [![PyPI](https://img.shields.io/pypi/v/dcachefs.svg?colorB=blue)](https://pypi.python.org/project/dcachefs/)
@@ -6,8 +8,6 @@
 [![CI Build](https://github.com/NLeSC-GO-common-infrastructure/dcachefs/workflows/Build/badge.svg)](https://github.com/NLeSC-GO-common-infrastructure/dcachefs/actions?query=workflow%3A%22Build%22)
 [![CI Publish](https://github.com/NLeSC-GO-common-infrastructure/dcachefs/workflows/Publish/badge.svg)](https://github.com/NLeSC-GO-common-infrastructure/dcachefs/actions?query=workflow%3A%22Publish%22)
 [![Documentation](https://readthedocs.org/projects/dcachefs/badge/?version=latest)](https://dcachefs.readthedocs.io)
-
-# dCacheFS
 
 dCacheFS provides a Python file-system interface for a [dCache storage system](https://www.dcache.org), such as the [instance provided at SURF](http://doc.grid.surfsara.nl/en/stable/Pages/Service/system_specifications/dcache_specs.html).
 dCacheFS builds and extend the [Filesystem Spec (fsspec)](https://github.com/fsspec/filesystem_spec) library, so that it can be used as an independent library or via the more general `fsspec` functions.
@@ -65,7 +65,7 @@ make html
 ## Contributing
 
 If you want to contribute to the development of dCacheFS,
-have a look at the [contribution guidelines](CONTRIBUTING.md).
+have a look at the [contribution guidelines](https://github.com/RS-DAT/dcachefs/blob/master/CONTRIBUTING.md).
 
 ## License
 
