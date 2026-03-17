@@ -8,6 +8,7 @@ import aiohttp
 import yarl
 from fsspec import FSTimeoutError
 from fsspec.asyn import AsyncFileSystem, sync, sync_wrapper
+from fsspec.callbacks import DEFAULT_CALLBACK
 from fsspec.implementations.http import HTTPFile, HTTPStreamFile, get_client
 from fsspec.utils import DEFAULT_BLOCK_SIZE
 from urlpath import URL
@@ -293,7 +294,9 @@ class dCacheFileSystem(AsyncFileSystem):  # noqa: N801
             out = await r.read()
         return out
 
-    async def _get_file(self, rpath, lpath, chunk_size=5 * 2**20, **kwargs):
+    async def _get_file(
+        self, rpath, lpath, chunk_size=5 * 2**20, callback=DEFAULT_CALLBACK, **kwargs
+    ):
         """Copy file to local.
 
         :param rpath: (str) remote target file path
@@ -320,7 +323,7 @@ class dCacheFileSystem(AsyncFileSystem):  # noqa: N801
                     chunk = await r.content.read(chunk_size)
                     fd.write(chunk)
 
-    async def _put_file(self, lpath, rpath, **kwargs):
+    async def _put_file(self, lpath, rpath, callback=DEFAULT_CALLBACK, **kwargs):
         """Copy file from local.
 
         :param rpath: (str) local target file path
