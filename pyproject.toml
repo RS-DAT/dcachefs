@@ -44,11 +44,12 @@ dev = [
     "pycodestyle",
 ]
 docs = [
-    "sphinx",
-    "docutils==0.16",
-    "sphinx_rtd_theme==0.5.2",
-    "recommonmark",
+    "lxml[html_clean]",
+    "m2r2",
     "nbsphinx",
+    "sphinx",
+    "sphinx-design",
+    "sphinx-rtd-theme",
 ]
 
 [tool.setuptools]
