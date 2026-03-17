@@ -26,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * documentation building on readthedocs is fixed
 * fixed issue with newer version of fsspec and put/get
+* fixed badges in README, links pointing to old organization
 
 ### Removed
 
